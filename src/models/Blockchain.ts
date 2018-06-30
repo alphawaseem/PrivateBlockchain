@@ -1,49 +1,55 @@
 import Block from "./Block";
 import { SHA256 } from "crypto-js";
 
+const level = require("level");
+
+const chainDB = level("./chaindata");
+const CHAIN_DB_NAME = "blockchain";
+
 export default class Blockchain {
-    private chain: Block[] = [];
-
-    constructor() {
-        this.addBlock(
-            this.createBlock("First block to this blockchain - the genesis block")
-        );
+   
+    async getChain(): Promise<Block[]> {
+        return (await chainDB.get(CHAIN_DB_NAME).then(JSON.parse).catch(() => []));
     }
 
-    getChain(): Block[] {
-        return [...this.chain];
+    private async createBlock(chain: Block[], data: any) {
+        return new Block(chain.length, data, this.getLastBlockHash(chain));
     }
 
-    createBlock(data: any) {
-        return new Block(this.chain.length, data, this.getLastBlockHash());
-    }
-
-    addBlock(block: Block) {
-        this.chain.push(block);
-    }
-
-    getBlockHeight() {
-        return this.chain.length - 1;
-    }
-
-    getBlock(blockNumber: number): Block | undefined {
-        if (blockNumber >= 0 && blockNumber < this.chain.length) {
-            return this.chain[blockNumber];
-        }
-        return undefined;
-    }
-
-    // 
-    getLastBlockHash(): string {
-        const lastBlock = this.getBlock(this.chain.length - 1);
+    getLastBlockHash(chain: Block[]): string {
+        const lastBlock = chain.length > 0 ? chain[chain.length - 1] : false;
         if (lastBlock) {
             return lastBlock.hash;
         }
         return "";
     }
 
-    validateBlock(blockHeight: number) {
-        const block = this.getBlock(blockHeight);
+    private async addBlock(chain: Block[], block: Block) {
+        chain.push(block);
+        await chainDB.put(CHAIN_DB_NAME, JSON.stringify(chain));
+    }
+
+    async createAndAddBlock(data: any) {
+        const chain = await this.getChain();
+        return this.createBlock(chain, data).then((block) => {
+            this.addBlock(chain, block);
+        }).catch(console.log);
+    }
+
+    async getBlockHeight(): Promise<number> {
+        return (await this.getChain()).length - 1;
+    }
+
+    async getBlock(blockNumber: number): Promise<Block | undefined> {
+        const chain = await this.getChain();
+        if (blockNumber >= 0 && blockNumber < chain.length) {
+            return chain[blockNumber];
+        }
+        return undefined;
+    }
+
+    async validateBlock(blockHeight: number) {
+        const block = await this.getBlock(blockHeight);
         if (block) {
             const blockHash = block.hash;
             delete block.hash;
@@ -60,14 +66,15 @@ export default class Blockchain {
         }
     }
 
-    validateChain() {
+    async validateChain() {
+        const chain = await this.getChain();
         const errorLog = [];
-        for (let i = 0; i < this.chain.length - 1; i++) {
+        for (let i = 0; i < chain.length - 1; i++) {
             // validate block
             if (!this.validateBlock(i)) errorLog.push(i);
             // compare blocks hash link
-            const blockHash = this.chain[i].hash;
-            const previousHash = this.chain[i + 1].previousBlockHash;
+            const blockHash = chain[i].hash;
+            const previousHash = chain[i + 1].previousBlockHash;
             console.log(blockHash, previousHash);
             if (blockHash !== previousHash) {
                 errorLog.push(i);
