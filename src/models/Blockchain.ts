@@ -7,7 +7,7 @@ const chainDB = level("./chaindata");
 const CHAIN_DB_NAME = "blockchain";
 
 export default class Blockchain {
-   
+
     async getChain(): Promise<Block[]> {
         return (await chainDB.get(CHAIN_DB_NAME).then(JSON.parse).catch(() => []));
     }
@@ -31,8 +31,8 @@ export default class Blockchain {
 
     async createAndAddBlock(data: any) {
         const chain = await this.getChain();
-        return this.createBlock(chain, data).then((block) => {
-            this.addBlock(chain, block);
+        return await this.createBlock(chain, data).then(async (block) => {
+            await this.addBlock(chain, block);
         }).catch(console.log);
     }
 

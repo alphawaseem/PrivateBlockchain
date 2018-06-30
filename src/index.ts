@@ -4,9 +4,10 @@ import Blockchain from "./models/Blockchain";
 
 (async () => {
     const blockchain = new Blockchain();
-    await blockchain.createAndAddBlock("First block of this blockchain - the genesis block");
-    
-    console.log(await blockchain.getChain());
-
-    blockchain.validateChain();
+    const blockHeight = await blockchain.getBlockHeight();
+    await blockchain.createAndAddBlock("Creating block " + (+blockHeight + 1)).then(async () => {
+        const chain = await blockchain.getChain();
+        console.log(chain);
+        await blockchain.validateChain();
+    });
 })();
