@@ -1,4 +1,4 @@
-import { SHA256, WordArray } from "crypto-js";
+import { SHA256 } from "crypto-js";
 
 export default class Block {
     hash: string;
