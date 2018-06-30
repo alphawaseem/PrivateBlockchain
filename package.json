@@ -11,6 +11,7 @@
     "build-ts": "./node_modules/typescript/bin/tsc"
   },
   "devDependencies": {
+    "@types/crypto-js": "^3.1.41",
     "@types/node": "^10.5.1",
     "tslint": "^5.10.0",
     "typescript": "^2.9.2"
