@@ -6,7 +6,7 @@
   "author": "codewaseem",
   "license": "MIT",
   "scripts": {
-    "build": "rm -rf dist/* && npm run build-ts && npm run tslint",
+    "build": "rm -rf chaindata/* && rm -rf dist/* && npm run build-ts && npm run tslint",
     "tslint": "./node_modules/tslint/bin/tslint -c tslint.json -p tsconfig.json --fix",
     "build-ts": "./node_modules/typescript/bin/tsc"
   },

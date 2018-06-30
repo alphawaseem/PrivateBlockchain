@@ -1,12 +1,15 @@
 import Blockchain from "./models/Blockchain";
 
-const blockchain = new Blockchain();
 
 
-blockchain.addBlock(blockchain.createBlock("block 1"));
-blockchain.addBlock(blockchain.createBlock("block 2"));
+(async () => {
+    const blockchain = new Blockchain();
+    await blockchain.createAndAddBlock("First block of this blockchain - the genesis block");
+    await blockchain.createAndAddBlock("block 1");
+    await blockchain.createAndAddBlock("block 2");
 
 
-// console.log(blockchain.getChain());
+    console.log(await blockchain.getChain());
 
-blockchain.validateChain();
+    blockchain.validateChain();
+})();
