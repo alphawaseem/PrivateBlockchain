@@ -61,8 +61,6 @@ export default class Blockchain {
                 console.log("Block #" + blockHeight + " invalid hash:\n" + blockHash + "<>" + validBlockHash);
                 return false;
             }
-        } else {
-            console.log("No block ", blockHeight);
         }
     }
 
@@ -75,7 +73,6 @@ export default class Blockchain {
             // compare blocks hash link
             const blockHash = chain[i].hash;
             const previousHash = chain[i + 1].previousBlockHash;
-            console.log(blockHash, previousHash);
             if (blockHash !== previousHash) {
                 errorLog.push(i);
             }
