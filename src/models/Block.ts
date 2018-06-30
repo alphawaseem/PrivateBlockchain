@@ -1,5 +1,8 @@
 import { SHA256 } from "crypto-js";
 
+/**
+ * Defines the data structure of the block in our simple blockchian.
+ */
 export default class Block {
     hash: string;
     height: number;

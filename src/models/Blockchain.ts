@@ -6,16 +6,25 @@ const level = require("level");
 const chainDB = level("./chaindata");
 const CHAIN_DB_NAME = "blockchain";
 
+/**
+ * Blockchain class responsible for creating and adding blocks to the blockchain.
+ * This class can also validate the individual block or entire blockchain.
+ */
 export default class Blockchain {
 
+    /**
+     * Returns a promise of array of blocks (blockchain) from the levelDB, if
+     * there is no data in the levelDB then promise of empty array is returned.
+     */
     async getChain(): Promise<Block[]> {
         return (await chainDB.get(CHAIN_DB_NAME).then(JSON.parse).catch(() => []));
     }
 
-    private async createBlock(chain: Block[], data: any) {
-        return new Block(chain.length, data, this.getLastBlockHash(chain));
-    }
-
+    /**
+     * This helper method returns hash of last block in the provided blockchain, if there is no block in the
+     * blockchain then it will return an empty string.
+     * @param chain the current blockchain
+     */
     getLastBlockHash(chain: Block[]): string {
         const lastBlock = chain.length > 0 ? chain[chain.length - 1] : false;
         if (lastBlock) {
@@ -24,22 +33,43 @@ export default class Blockchain {
         return "";
     }
 
+    /**
+     * This is a helper method which will add the given block to 
+     * the provided blockchain. I have made it private to prevent adding 
+     * invalid block to the blockchain. This method also add/updates the 
+     * blockchain in the levelDB.
+     * @param chain The blockchain to which new block will be added.
+     * @param block The new block that will be added to the provided chain.
+     */
     private async addBlock(chain: Block[], block: Block) {
         chain.push(block);
         await chainDB.put(CHAIN_DB_NAME, JSON.stringify(chain));
     }
 
-    async createAndAddBlock(data: any) {
+    /**
+     * This creates a new block with the given `data` and add it to
+     * the blockchain.
+     * @param data The data which will be attached to the body of new block
+     */
+    async createAndAddBlock(data: any): Promise<Block> {
         const chain = await this.getChain();
-        return await this.createBlock(chain, data).then(async (block) => {
-            await this.addBlock(chain, block);
-        }).catch(console.log);
+        const newBlock = new Block(chain.length, data, this.getLastBlockHash(chain));
+        await this.addBlock(chain, newBlock);
+        return newBlock;
     }
 
+    /**
+     * Returns the promise with current height of blockchain.
+     */
     async getBlockHeight(): Promise<number> {
         return (await this.getChain()).length - 1;
     }
 
+    /**
+     * Returns the promise with the block at given blockNumber in the blockchain.
+     * If blockNumber is invalid then Promise of undefined is returned.
+     * @param blockNumber block number to retreive from the blockchain.
+     */
     async getBlock(blockNumber: number): Promise<Block | undefined> {
         const chain = await this.getChain();
         if (blockNumber >= 0 && blockNumber < chain.length) {
@@ -48,6 +78,11 @@ export default class Blockchain {
         return undefined;
     }
 
+    /**
+     * Validates the block at the given number and returns the promise with the 
+     * boolean result.
+     * @param blockHeight The block to validate.
+     */
     async validateBlock(blockHeight: number) {
         const block = await this.getBlock(blockHeight);
         if (block) {
@@ -62,8 +97,12 @@ export default class Blockchain {
                 return false;
             }
         }
+        return false;
     }
 
+    /**
+     * Validates the full blockchain and prints the appropriate message.
+     */
     async validateChain() {
         const chain = await this.getChain();
         const errorLog = [];
